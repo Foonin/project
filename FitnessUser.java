@@ -1,12 +1,12 @@
 import java.util.HashMap;
 
 public class FitnessUser extends User implements UserAuthentication {
-    double weight;
-    double height;
-    Goal goal;
-    String password;
-    CalculateExcerciseCalories caloriesCalculation;
-    HashMap <Character,Character> encryptionMap = new HashMap<>();
+    private double weight;
+    private double height;
+    private Goal goal;
+    private String password;
+    private CalculateExcerciseCalories caloriesCalculation;
+    private HashMap <Character,Character> encryptionMap = new HashMap<>();
     FitnessUser(String username, String password, String email, double weight, double height, Goal goal, CalculateExcerciseCalories caloriesCalculation){
         super(username, password, email);
         this.height = height;
@@ -66,7 +66,18 @@ public class FitnessUser extends User implements UserAuthentication {
         this.encryptionMap.put(')', '!');
         
     }
-
+    public double getHeight(){
+        return this.height;
+    }
+    public double getWeight(){
+        return this.weight;
+    }
+    public Goal getGoal(){
+        return this.goal;
+    }
+    public CalculateExcerciseCalories getExcercise(){
+        return this.caloriesCalculation;
+    }
     public String encrypt(String password){
         String encryptString = "";
         for (int i = 0; i < password.length(); i++) {
