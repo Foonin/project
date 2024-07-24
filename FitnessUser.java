@@ -116,7 +116,8 @@ enum Goal{
     MAINTAIN_WEIGHT
 }
 enum ImprovementMetric{
-
+    BMI,
+    PURE_WEIGHT_BASED
 }
 enum CalculateExcerciseCalories{
     PER_EXCERCISE,
