@@ -7,11 +7,11 @@ public class FitnessUser extends User implements UserAuthentication {
     String password;
     CalculateExcerciseCalories caloriesCalculation;
     HashMap <Character,Character> encryptionMap = new HashMap<>();
-    FitnessUser(String username, String password, String email, double weight, double height, Goal goal, CalculateExcerciseCalories caloriescalculation){
+    FitnessUser(String username, String password, String email, double weight, double height, Goal goal, CalculateExcerciseCalories caloriesCalculation){
         super(username, password, email);
         this.height = height;
         this.weight = weight;
-        this.caloriesCalculation = caloriescalculation;
+        this.caloriesCalculation = caloriesCalculation;
         this.goal = goal;
         this.password = password;
         this.encryptionMap.put('a', 'm');
