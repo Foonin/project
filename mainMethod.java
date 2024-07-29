@@ -298,11 +298,9 @@ public class mainMethod {
                                 System.out.println("No daily log found for the specified date.");
                             }
                         } else if (exerciseChoice == 6) {
-                            // View Fitness History
                             system.currentUser.getFitnessHistory().calculateAllImprovements();
                             system.currentUser.getFitnessHistory().viewFitnessHistory();
                         } else if (exerciseChoice == 7) {
-                            // Log Out
                             system.logOut(system.currentUser.getName());
                             loggedIn = false;
                             System.out.println("Logged out successfully.");
@@ -313,7 +311,7 @@ public class mainMethod {
                 }
             } catch (Exception e) {
                 System.out.println("An error occurred: "+e.getMessage());
-                In.nextLine(); // Clear the input buffer
+                In.nextLine();
             }
         }
     }
