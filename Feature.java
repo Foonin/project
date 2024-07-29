@@ -1,9 +1,3 @@
-import java.util.ArrayList;  // imports ArrayList
-import java.util.Collections;  // imports Collections
-import java.util.Comparator;  // imports Comparator
-import java.util.LinkedList;  // imports LinkedList
-import java.util.List;  // imports List
-
 enum ExerciseType {  // enum to represent various exercise types
 
     PUSH_UPS("Push-ups",8, 20, 0000),  // push-ups
@@ -34,18 +28,18 @@ interface ExerciseTracker {
     void addExercise(Exercise exericse);  // add exercises to exercise arraylist
     double trackExerciseCaloriesBurntByDuration();  // track the calories burnt from exercises by duration
 }
-// interface for nutrition methods
-interface NutritionTracker {  
-    void trackCaloriesBurnt(double calories);  // tracks genreal calories burnt eg. from food
-    void trackCaloriesConsumed(double calories);  // tracks caloies consumed from foods
-}
+
 // interface for sleep methods
 interface SleepTracker {
     void trackSleepHours(double hours);  // tracks amount of hours of sleep
 }
 
-abstract class Feature {
+class Feature {
     protected FitnessUser user;  // user attribute to assign each feature for specific user
+
+    Feature(FitnessUser user) {
+        this.user = user;
+    }
 
     // accessor method for user
     FitnessUser getUser() {
@@ -59,11 +53,21 @@ class Exercise extends Feature {
     protected ExerciseType exerciseType;  // the exercise type
 
     // intialise attributes
-    Exercise(double hours, int count, ExerciseType exerciseType) {
+    Exercise(double hours, int count, ExerciseType exerciseType, FitnessUser user) {
+        super(user);
         this.hours = hours;
         this.count = count;
         this.exerciseType = exerciseType;
     }
+
+    void addHours(double hours) {
+        this.hours += hours;
+    }
+
+    void addCount(int count) {
+        this.count += count;
+    }
+
 
     // accessor method for hours
     double getHours() {
@@ -79,16 +83,21 @@ class Exercise extends Feature {
     }
 }
 
-class PhysicalMonitor extends Feature implements NutritionTracker, ExerciseTracker {
+class PhysicalMonitor extends Feature implements ExerciseTracker {
     List<Exercise> exercises;  // holds all exercises done
     double caloriesBurnt;  // total calories burnt 
     double caloriesConsumed;  // total calries consumed
 
     // initialises attributes
-    PhysicalMonitor() {
+    PhysicalMonitor(FitnessUser user) {
+        super(user);
         this.exercises = new ArrayList<>();
         this.caloriesBurnt = 0;
         this.caloriesConsumed = 0;
+    }
+
+    public List<Exercise> getExercises() {
+        return this.exercises;
     }
 
     // overrides the methods from ExerciseTracker
@@ -130,20 +139,16 @@ class PhysicalMonitor extends Feature implements NutritionTracker, ExerciseTrack
         }
         return totalCaloriesBurnt;  // returns the total calories burnt
     }
-    // overrides the methods from NutritionTracker
-    @Override
-    // tracks the general calories burnt 
-    public void trackCaloriesBurnt(double calories) {
-        this.caloriesBurnt += calories;
-    }
-    // tracks the general calories consumed
-    public void trackCaloriesConsumed(double calories) {
-        this.caloriesConsumed += calories;
-    }
+
 }
 
 class StressMonitor extends Feature implements SleepTracker {
     double hoursOfSleep;
+
+    StressMonitor(double hoursOfSleep, FitnessUser user) {
+        super(user);
+        this.hoursOfSleep = hoursOfSleep;
+    }
 
     // overrides the methods from SleepTracker
     @Override
@@ -159,7 +164,7 @@ class DailyLog extends FitnessHistory {
     int year;
     String date = this.days+"/"+this.months+"/"+this.year;
     List<DailyLog> dailyLog;  // a sub-collection of the "history" collection
-    List<Feature> features;  //! add features to this array
+    List<Feature> features;  
     List<Exercise> exercises;
     double caloriesBurnt;
     double caloriesConsumed;
@@ -167,21 +172,54 @@ class DailyLog extends FitnessHistory {
     double caloriesBurntFromExercisesByDuration;
     double hoursOfSleep;
     double improvementPercentage;
-    double bmi = this.user.getWeight()/this.user.getHeight()*this.user.getHeight();  // bmi of each user
+    double bmi;  // bmi of each user
+
+    void populateFeatures() {
+        this.features = new ArrayList<>();
+        // Create and add PhysicalMonitor
+        PhysicalMonitor physicalMonitor = new PhysicalMonitor(this.user);
+        this.features.add(physicalMonitor);
+        // Create and add StressMonitor
+        StressMonitor stressMonitor = new StressMonitor(0, this.user);
+        this.features.add(stressMonitor);
+        // adds the FitnessHistory
+        this.features.add(this);
+    }
+
+    public void setExercises(List<Exercise> exercises) {
+        this.exercises = new ArrayList<>(exercises);  // Create a new list to avoid reference issues
+    }
+
+    public void calculateCalories() {
+        this.caloriesBurntFromExercisesByCount = 0;
+        this.caloriesBurntFromExercisesByDuration = 0;
+        if (this.exercises != null) {
+            for (Exercise e : this.exercises) {
+                if (this.user.getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
+                    this.caloriesBurntFromExercisesByCount += (e.getExerciseType().METvalue * this.user.getWeight()) / (60 * e.getExerciseType().amountOfExercisePerMinute) * e.getCount();
+                } else {
+                    this.caloriesBurntFromExercisesByDuration += e.getExerciseType().METvalue * this.user.getWeight() * e.getHours();
+                }
+            }
+        }
+    }
 
     // initialises each attribute using polymorphism
-    DailyLog(int days, int months, int year) {
+    DailyLog(int days, int months, int year, FitnessUser user) {
+        // assigning the user from fittnessHistory class to the user from this class
+        super(user);
+        this.bmi = this.user.getWeight()/(this.user.getHeight()*this.user.getHeight());
+        this.user = user;
         // usual initialisation of attributes
         this.days = days;
         this.months = months;
         this.year = year;
         this.date = this.days+"/"+this.months+"/"+this.year;
-        this.features = new ArrayList<>();
+        // call the populateFeatures method to add all features into the arraylist
+        populateFeatures();
         // polymorphic initialisation of attributes
         // iterating through feature objects
         for (Feature f : this.features) {
-            // assigning the user from feature class to the user from this class
-            this.user = f.user;
             // conditional statement to check if "f" is of type "PhysicalMonitor"
             if (f instanceof PhysicalMonitor) {
                 PhysicalMonitor p = (PhysicalMonitor) f;  // casting f onto "PhysicalMonitor" to convert it
@@ -199,43 +237,33 @@ class DailyLog extends FitnessHistory {
             }
         }
     }
-    // calculates improvement
-    void calculateImprovement() {
-        double totalImprovement = 0;
-        int comparisons = 0;
-        
-        // iterates through indexs of the history list
-        for (int i = 0; i < super.history.size()-1; i++) {
-            DailyLog currentLog = super.history.get(i);  // assigning current log with the current index we are looping through
-            DailyLog nextLog = super.history.get(i+1);  // assigning next log with the next index we are looping through
-    
-            // assigning daily improvement as a percentage using specific formula
-            double dailyImprovement = ((nextLog.bmi-currentLog.bmi)/currentLog.bmi)*100;
-            totalImprovement += dailyImprovement;  // then plussing that daily improvement to the total improvement
-            comparisons++; // then incrementing comparisons by 1 each time
-        }
-        
-        // checks if comparisons is greater than 0
-        if (comparisons > 0) {
-            double averageImprovement = totalImprovement/comparisons;  // getting average improvement
-    
-            // checking if the users goal is to lose weight
-            if (this.user.getGoal().equals(Goal.LOSE_WEIGHT)) {
-                this.improvementPercentage += -averageImprovement; // negative improvement is good for weight loss
-                // checks if users goal is to gain weight
-            } else if (this.user.getGoal().equals(Goal.GAIN_WEIGHT)) {
-                this.improvementPercentage += averageImprovement; // positive improvement is good for weight gain
-                // checks if users goal is to maintain weight
-            } else if (this.user.getGoal().equals(Goal.MAINTAIN_WEIGHT)) {
-                // for maintaining weight, we'll return a negative value regardless of direction
-                if (averageImprovement > 0) {
-                    this.improvementPercentage += -averageImprovement;
-                } else {
-                    this.improvementPercentage += averageImprovement;
-                }
+    public void addSleepHours(double hours) {
+        this.hoursOfSleep += hours;
+        for (Feature f : this.features) {
+            if (f instanceof StressMonitor) {
+                ((StressMonitor) f).trackSleepHours(hours);
+                break;
             }
         }
-        this.improvementPercentage += 0; // assign 0 if there's not enough history to calculate improvement
+    }    
+    public void updateBMI(double weight, double height) {
+        this.bmi = weight / (height * height);
+    }
+    void calculateImprovement() {
+        DailyLog previousLog = this.user.getFitnessHistory().getPreviousDailyLog(this);
+        if (previousLog != null) {
+            double improvement = ((this.bmi - previousLog.bmi) / previousLog.bmi) * 100;
+            
+            if (this.user.getGoal().equals(Goal.LOSE_WEIGHT)) {
+                this.improvementPercentage = -improvement; // negative improvement is good for weight loss
+            } else if (this.user.getGoal().equals(Goal.GAIN_WEIGHT)) {
+                this.improvementPercentage = improvement; // positive improvement is good for weight gain
+            } else if (this.user.getGoal().equals(Goal.MAINTAIN_WEIGHT)) {
+                this.improvementPercentage = Math.abs(improvement) * -1; // any change is considered negative for maintaining weight
+            }
+        } else {
+            this.improvementPercentage = 0; // No previous log to compare with
+        }
     }
 
     // accessor method
@@ -287,49 +315,45 @@ class DailyLog extends FitnessHistory {
             System.out.println("Please enter a valid amount");
         }
     }
+    void addCaloriesConsumed(double calories) {
+        this.caloriesConsumed += calories;
+    }
+
+    void addCaloriesBurnt(double calories) {
+        this.caloriesBurnt += calories;
+    }
 
     // this method allows the user to view a specific day from the history array
-    void viewDailyLog() {
-        // iterating through the day object
-        for (DailyLog d : this.dailyLog) {
-            System.out.println("--------------------------------");
-            System.out.println("Date: "+d.date+"\n"+  // displaying the date first
-                            "Weight: "+d.user.getWeight()+"\n"+  // displaying the users weight on that specific day
-                            "BMI: "+d.bmi+"\n"+  // displaying the users BMI on that specific day
-                            "Improvement Percetange: "+d.improvementPercentage+"%"+"\n"+  // shows their improvement percentage
-                            "General Calories Burnt: "+d.caloriesBurnt()+"\n"+  // the general calories burnt that day
-                            "General Calories Consumed: "+d.caloriesConsumed());  // general caloires consumed that day
-                            // checks if the user's calorie caluclation is per rep 
-                            if (this.user.getCaloriesCalculation().equals(CalculateExcerciseCalories.PER_EXCERCISE)) {
-                                // outputing calories burnt from exercises using the by count method
-                                System.out.println("Calories Burnt from Exercises: "+d.getCaloriesBurntFromExercisesByCount());
-                                // checking if the user's calorie calculation is by duration
-                            } else if (this.user.getCaloriesCalculation().equals(CalculateExcerciseCalories.DURATION_OF_EXCERCISE)) {
-                                // outputing calories burnt from exercises using the by duration method
-                                System.out.println("Calories Burnt from Exercises: "+d.getCaloriesBurntFromExercisesByDuration());
-                            }
-                            // printing exercises details
-                            System.out.println("Exercises: ");
-                            // checks if the user's calorie caluclation is per rep
-                            if (this.user.getCaloriesCalculation().equals(CalculateExcerciseCalories.PER_EXCERCISE)) {
-                                // iterating through each exercise object in the exercises array
-                                for (Exercise e : d.exercises) {
-                                    // outputing each exercise name, as well as the repetition
-                                    System.out.println("  • "+e.exerciseType.name+": \n     • Repetition: "+e.count);
-                                }
-                                // checks if the user's calorie caluclation is by duration
-                            } else if (this.user.getCaloriesCalculation().equals(CalculateExcerciseCalories.DURATION_OF_EXCERCISE)) {
-                                // iterating through each exercise object in the exercises array
-                                for (Exercise e : d.exercises) {
-                                    // outputing each exercise name, as well as the duration in hours
-                                    System.out.println("  • "+e.exerciseType.name+": \n     • Hours: "+e.hours);
-                                }
-                            }
-                            // then outputing the sleep hours
-                            System.out.println("Sleep Hours: "+d.hoursOfSleep);
-
-            System.out.println("--------------------------------");
+    public void viewDailyLog() {
+        System.out.println("--------------------------------");
+        System.out.println("Date: " + this.date);
+        System.out.println("Weight: " + this.user.getWeight());
+        System.out.println("BMI: " + this.bmi);
+        System.out.println("Improvement Percentage: " + this.improvementPercentage + "%");
+        System.out.println("General Calories Burnt: " + this.caloriesBurnt);
+        System.out.println("General Calories Consumed: " + this.caloriesConsumed);
+        
+        if (this.user.getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
+            System.out.println("Calories Burnt from Exercises: " + this.caloriesBurntFromExercisesByCount);
+        } else if (this.user.getCaloriesCalculation() == CalculateExcerciseCalories.DURATION_OF_EXCERCISE) {
+            System.out.println("Calories Burnt from Exercises: " + this.caloriesBurntFromExercisesByDuration);
         }
+        
+        System.out.println("Exercises: ");
+        if (this.exercises != null && !this.exercises.isEmpty()) {
+            for (Exercise e : this.exercises) {
+                if (this.user.getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
+                    System.out.println("  • " + e.getExerciseType().name + ": \n     • Repetition: " + e.getCount());
+                } else {
+                    System.out.println("  • " + e.getExerciseType().name + ": \n     • Hours: " + e.getHours());
+                }
+            }
+        } else {
+            System.out.println("No exercises recorded for this day.");
+        }
+        
+        System.out.println("Sleep Hours: " + this.hoursOfSleep);
+        System.out.println("--------------------------------");
     }
 }
 
@@ -337,10 +361,9 @@ class FitnessHistory extends Feature {
     // holds the history of the user
     protected List<DailyLog> history;
 
-    // initialises the history attribute
-    FitnessHistory() {
-        // using linked list for variety
-        this.history = new LinkedList<>();
+    FitnessHistory(FitnessUser user) {
+        super(user);
+        this.history = new ArrayList<>();
     }
     // method to add dailylogs to history
     void addDailyLog(DailyLog dailyLog) {
@@ -359,39 +382,44 @@ class FitnessHistory extends Feature {
             this.history.add(dailyLog);  // adds that parameter dailylog object
         }
     }
-    // method to replace dailylog object
-    void replaceDailyLog(DailyLog dailyLog) {
-        int indexToRemove = -1;  // declaring a variable and assigning -1 to check if it equals to -1 later in the method
-        
-        // iterates through 0 = i - size of history array, adding 1 to i each iteration
+    public DailyLog getPreviousDailyLog(DailyLog currentLog) {
+        int currentIndex = this.history.indexOf(currentLog);
+        if (currentIndex > 0) {
+            return this.history.get(currentIndex - 1);
+        }
+        return null;
+    }
+    public DailyLog getMostRecentDailyLog() {
+        if (this.history.isEmpty()) {
+            return null;
+        }
+        return this.history.get(this.history.size() - 1);
+    }
+    void calculateAllImprovements() {
+        for (DailyLog log : this.history) {
+            log.calculateImprovement();
+        }
+    }
+    void addOrUpdateDailyLog(DailyLog dailyLog) {
         for (int i = 0; i < this.history.size(); i++) {
-            // checking if history contains a DailyLog object with date equal to "dailyLog"
-            if (this.history.get(i).date.equals(dailyLog.date)) {
-                indexToRemove = i;  // assigns the index which is i in this case to "indexToRemove" variable that was declared earlier
-                break;
+            if (this.history.get(i).getDate().equals(dailyLog.getDate())) {
+                this.history.set(i, dailyLog);
+                return;
             }
         }
-        if (indexToRemove != -1) {  // checks if "indexToRemove" is equal to -1
-            this.history.remove(indexToRemove);  // removes the indexToRemove
-            this.history.add(dailyLog);  // adds the dailyLog parameter
+        this.history.add(dailyLog);
+    }
+
+    public DailyLog getDailyLog(int day, int month, int year) {
+        String date = day+"/"+month+"/"+year;
+        for (DailyLog log : this.history) {
+            if (log.getDate().equals(date)) {
+                return log;
+            }
         }
+        return null;
     }
-    // method to add to the exercise count
-    void addToExerciseCount(int count, Exercise exercise) {
-        exercise.count += count;
-    }
-    // method to add to the exercise duration
-    void addToExerciseCountDuration(double hours, Exercise exercise) {
-        exercise.hours += hours;
-    }
-    // method to remove from exercise count
-    void removeFromExerciseCount(int count, Exercise exercise) {
-        exercise.count -= count;
-    }
-    // method to remove from the exercise duration
-    void removeFromExerciseDuration(double hours, Exercise exercise) {
-        exercise.hours -= hours;
-    }
+
     // method to remove dailylogs 
     void removeDailyLog(DailyLog dailyLog) {
         int indexToRemove = -1;  // declaring a variable and assigning -1 to check if it equals to -1 later in the method
@@ -411,31 +439,26 @@ class FitnessHistory extends Feature {
     }
     // method to allow the user to view all of the history but with less details
     void viewFitnessHistory() {
-        boolean firstIndex = true;
+        if (this.history.isEmpty()) {
+            System.out.println("No fitness history available.");
+            return;
+        }
 
         // comparator declared to compare dates between dates
-        final Comparator<DailyLog> comparatorForDates = Comparator.comparing(DailyLog::getYear)
-        .thenComparing(DailyLog::getMonths).thenComparing(DailyLog::getDays);
+        final Comparator<DailyLog> comparatorForDates = Comparator.comparing(DailyLog::getYear).thenComparing(DailyLog::getMonths).thenComparing(DailyLog::getDays);
 
         // sorts the history list using the comparator declared above
         Collections.sort(this.history, comparatorForDates);
 
         int index = 1;
-
         // iterating through dailylog objects
         for (DailyLog d : this.history) {
-            // minor string formatting
-            // displays the users name
-            System.out.println("Fitness History for "+d.user.getName());
-            // displays the number of daily log reprented in a index variable that is incremeted by one each iteration
-            System.out.println(index+".");
+            System.out.println(index + ".");
             System.out.println("--------------------------------");
-            // displays the date, BMI and improvement percentage
-            System.out.println("Date: "+d.date+"\n"+
-                                "BMI: "+d.bmi+"\n"+
-                                "Improvement Percetange: "+d.improvementPercentage+"%");
+            System.out.println("Date: " + d.date);
+            System.out.println("BMI: " + d.bmi);
+            System.out.println("Improvement Percentage: " + d.improvementPercentage + "%");
             System.out.println("--------------------------------");
-            // increment index by 1
             index++;
         }
     }   
