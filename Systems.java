@@ -9,7 +9,7 @@ class Systems implements verifyAccount{
     private int availableId;
     private Map<Integer, FitnessUser> accounts; // 
     private List<FitnessUser> signedInAccount; //Optimize better than Arraylist
-    private FitnessUser currentUser;
+    public FitnessUser currentUser;
     Systems(){
         this.accounts = new HashMap<>();
         this.signedInAccount= new LinkedList<>();
@@ -72,6 +72,7 @@ class Systems implements verifyAccount{
             if (user.getName().equals(username)){
                 this.signedInAccount.remove(user);
                 System.out.println("Log Out successfully");
+                this.currentUser = null;
             }
             else{
                 System.out.println("Log Out unsuccessfully");
