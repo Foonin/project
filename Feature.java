@@ -1,4 +1,3 @@
-import java.util.*;
 enum ExerciseType {  // enum to represent various exercise types
 
     PUSH_UPS("Push-ups",8, 20, 0000),  // push-ups
