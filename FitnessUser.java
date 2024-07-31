@@ -345,6 +345,12 @@ class DailyLog {
             }
         }
     }    
+    public void addCalories(double cal){
+        this.caloriesBurntFromExercisesByCount += cal;
+    }
+    public void burmCalories(double cal){
+        this.caloriesBurntFromExercisesByCount -= cal;
+    }
     
     
 
