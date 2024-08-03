@@ -1,11 +1,16 @@
 import java.util.List;
 
 public class mainMethod {
+    Systems system = new Systems();
+    boolean running = true;
+    Goal g = Goal.GAIN_WEIGHT;
+    CalculateExcerciseCalories c = CalculateExcerciseCalories.DURATION_OF_EXCERCISE;
+        
         public static void main(String[] args) {
-        Systems system = new Systems();
-        boolean running = true;
-        Goal g = Goal.GAIN_WEIGHT;
-        CalculateExcerciseCalories c = CalculateExcerciseCalories.DURATION_OF_EXCERCISE;
+            mainMethod menu = new mainMethod();
+            menu.runningMenu();
+        }
+        void runningMenu(){
         system.addAccount("1", "1", "1", 100, 1.5, g, c);
         while (running) {
             System.out.println("\n--- Fitness Tracker Menu ---");
@@ -20,76 +25,17 @@ public class mainMethod {
 
                 if (choice == 1) {
                     // Create Account
-                    System.out.print("Enter username: ");
-                    String username = In.nextLine();
-                    System.out.print("Enter password: ");
-                    String password = In.nextLine();
-                    System.out.print("Enter email: ");
-                    String email = In.nextLine();
-                    System.out.print("Enter weight (kg): ");
-                    double weight = In.nextDouble();
-                    System.out.print("Enter height (m): ");
-                    double height = In.nextDouble();
-                    
-                    System.out.println("Choose your goal:");
-                    System.out.println("1. Lose Weight");
-                    System.out.println("2. Gain Weight");
-                    System.out.println("3. Maintain Weight");
-                    int goalChoice = In.nextInt();
-                    Goal goal;
-                    if (goalChoice == 1) {
-                        goal = Goal.LOSE_WEIGHT;
-                    } else if (goalChoice == 2) {
-                        goal = Goal.GAIN_WEIGHT;
-                    } else {
-                        goal = Goal.MAINTAIN_WEIGHT;
-                    }
-
-                    System.out.println("Choose calorie calculation method:");
-                    System.out.println("1. Per Exercise");
-                    System.out.println("2. Duration of Exercise");
-                    int calcChoice = In.nextInt();
-                    CalculateExcerciseCalories caloriesCalculation;
-                    if (calcChoice == 1) {
-                        caloriesCalculation = CalculateExcerciseCalories.PER_EXCERCISE;
-                    } else {
-                        caloriesCalculation = CalculateExcerciseCalories.DURATION_OF_EXCERCISE;
-                    }
-
-                    system.addAccount(username, password, email, weight, height, goal, caloriesCalculation);
+                    creatAccount();
                 } else if (choice == 2) {
                     // Log In
-                    System.out.println("Login method:");
-                    System.out.println("1. Login with Username");
-                    System.out.println("2. Login with ID");
-                    int loginMethod = In.nextInt();
-
-
-                    if (loginMethod == 1) {
-                        System.out.print("Enter username: ");
-                        String username = In.nextLine();
-                        System.out.print("Enter password: ");
-                        String password = In.nextLine();
-                        system.logIn(username, password);
-                    } else if (loginMethod == 2) {
-                        System.out.print("Enter ID: ");
-                        int id = In.nextInt();
-                        System.out.print("Enter password: ");
-                        String password = In.nextLine();
-                        system.logIn(id, password);
-                    } else {
-                        System.out.println("Invalid login method chosen.");
-                    }
+                    logInMenu();
+                    
                 } else if (choice == 3) {
                     // Log Out
-                    if (system.currentUser == null) {
-                        System.out.println("No user is currently logged in.");
-                    } else {
-                        system.logOut(system.currentUser.getName());
-                    }
+                    logOutMenu();
                 } else if (choice == 4) {
-                    running = false;
-                    System.out.println("Thank you for using the Fitness Tracker. Goodbye!");
+                    exit();
+                    
                 } else {
                     System.out.println("Invalid choice. Please try again.");
                 }
@@ -114,7 +60,117 @@ public class mainMethod {
     
                         if (exerciseChoice == 1) {
                             // Add Exercises
-                            System.out.println("Enter the date for these exercises (DD MM YYYY):");
+                            addExerciseMenu();
+                            
+                        } else if (exerciseChoice == 2){
+                            modifyExerciseMenu();
+                            
+
+                        } else if (exerciseChoice == 3) {
+                            addCaloriesMenu();
+                            
+
+                        } else if (exerciseChoice == 4) {
+                            logSleepHourMenu();
+                            
+                        } else if (exerciseChoice == 5) {
+                            getDailyLogMenu();
+                            // View Daily Log
+                            
+                        } else if (exerciseChoice == 6) {
+                            viewHistoryMenu();
+                            
+                        } else if (exerciseChoice == 7) {
+                            system.logOut(system.currentUser.getName());
+                            loggedIn = false;
+                            System.out.println("Logged out successfully.");
+                        } else {
+                            System.out.println("Invalid choice. Please try again.");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("An error occurred: "+e.getMessage());
+                In.nextLine();
+            }
+        }
+    }
+    
+            private void creatAccount(){
+            System.out.print("Enter username: ");
+            String username = In.nextLine();
+            System.out.print("Enter password: ");
+            String password = In.nextLine();
+            System.out.print("Enter email: ");
+            String email = In.nextLine();
+            System.out.print("Enter weight (kg): ");
+            double weight = In.nextDouble();
+            System.out.print("Enter height (m): ");
+            double height = In.nextDouble();
+            
+            System.out.println("Choose your goal:");
+            System.out.println("1. Lose Weight");
+            System.out.println("2. Gain Weight");
+            System.out.println("3. Maintain Weight");
+            int goalChoice = In.nextInt();
+            Goal goal;
+            if (goalChoice == 1) {
+                goal = Goal.LOSE_WEIGHT;
+            } else if (goalChoice == 2) {
+                goal = Goal.GAIN_WEIGHT;
+            } else {
+                goal = Goal.MAINTAIN_WEIGHT;
+            }
+
+            System.out.println("Choose calorie calculation method:");
+            System.out.println("1. Per Exercise");
+            System.out.println("2. Duration of Exercise");
+            int calcChoice = In.nextInt();
+            CalculateExcerciseCalories caloriesCalculation;
+            if (calcChoice == 1) {
+                caloriesCalculation = CalculateExcerciseCalories.PER_EXCERCISE;
+            } else {
+                caloriesCalculation = CalculateExcerciseCalories.DURATION_OF_EXCERCISE;
+            }
+
+            system.addAccount(username, password, email, weight, height, goal, caloriesCalculation);
+        }
+            private void logInMenu(){
+                System.out.println("Login method:");
+                    System.out.println("1. Login with Username");
+                    System.out.println("2. Login with ID");
+                    int loginMethod = In.nextInt();
+
+
+                    if (loginMethod == 1) {
+                        System.out.print("Enter username: ");
+                        String username = In.nextLine();
+                        System.out.print("Enter password: ");
+                        String password = In.nextLine();
+                        system.logIn(username, password);
+                    } else if (loginMethod == 2) {
+                        System.out.print("Enter ID: ");
+                        int id = In.nextInt();
+                        System.out.print("Enter password: ");
+                        String password = In.nextLine();
+                        system.logIn(id, password);
+                    } else {
+                        System.out.println("Invalid login method chosen.");
+                    }
+            }
+            void logOutMenu(){
+                if (system.currentUser == null) {
+                    System.out.println("No user is currently logged in.");
+                } else {
+                    system.logOut(system.currentUser.getName());
+                }
+            }
+            void exit(){
+                running = false;
+                System.out.println("Thank you for using the Fitness Tracker. Goodbye!");
+            }
+            void addExerciseMenu(){
+                System.out.println("Enter the date for these exercises (DD MM YYYY):");
                             System.out.print("Day: ");
                             int day = In.nextInt();
                             System.out.print("Month: ");
@@ -174,8 +230,9 @@ public class mainMethod {
                             system.currentUser.calculateImprovement(dailyLog, system.currentUser.getGoal());
                             //system.currentUser.history.calculateImprovement(updatedLog,system.currentUser.getGoal(),system.currentUser.previousBMI,system.currentUser.bmi);
                             //system.currentUser.getFitnessHistory().addOrUpdateDailyLog(updatedLog);
-                        } else if (exerciseChoice == 2){
-                            System.out.println("Enter the date of the exercise to modify (DD MM YYYY):");
+            }
+            void modifyExerciseMenu(){
+                System.out.println("Enter the date of the exercise to modify (DD MM YYYY):");
                             System.out.print("Day: ");
                             int day = In.nextInt();
                             System.out.print("Month: ");
@@ -223,9 +280,9 @@ public class mainMethod {
                             } else {
                                 System.out.println("No daily log found for the specified date.");
                             }
-
-                        } else if (exerciseChoice == 3) {
-                            System.out.println("Enter the date to add calories (DD MM YYYY):");
+            }
+            void addCaloriesMenu(){
+                System.out.println("Enter the date to add calories (DD MM YYYY):");
                             System.out.print("Day: ");
                             int day = In.nextInt();
                             System.out.print("Month: ");
@@ -235,8 +292,10 @@ public class mainMethod {
 
                             DailyLog dailyLog = system.currentUser.getFitnessHistory().getDailyLog(day, month, year);
                             if (dailyLog == null) {
-                                dailyLog = new DailyLog(day, month, year);
+                                System.out.println("No daily Log on this day");
+                                // dailyLog = new DailyLog(day, month, year);
                             }
+                            else{
 
                             System.out.println("1. Add Calories Consumed");
                             System.out.println("2. Add Calories Burnt");
@@ -247,23 +306,22 @@ public class mainMethod {
                                 System.out.print("Enter calories consumed: ");
                                 double calories = In.nextDouble();
                                 // dailyLog.addCaloriesConsumed(calories);
-                                system.currentUser.addCalories(calories);
+                                dailyLog.addCalories(calories);
                                 System.out.println("Calories consumed added successfully.");
                             } else if (calorieChoice == 2) {
                                 System.out.print("Enter calories burnt: ");
                                 double calories = In.nextDouble();
                                 // dailyLog.addCaloriesBurnt(calories);
-                                system.currentUser.burnCalories(calories);
+                                dailyLog.burmCalories(calories);
                                 System.out.println("Calories burnt added successfully.");
                             } else {
                                 System.out.println("Invalid choice.");
                             }
-                            system.currentUser.updateBMI(system.currentUser.getWeight(), system.currentUser.getHeight());
-                            system.currentUser.calculateImprovement(dailyLog,system.currentUser.getGoal());
                             system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
-
-                        } else if (exerciseChoice == 4) {
-                            System.out.println("Enter the date to log sleep hours (DD MM YYYY):");
+                        }
+            }
+            void logSleepHourMenu(){
+                System.out.println("Enter the date to log sleep hours (DD MM YYYY):");
                             System.out.print("Day: ");
                             int day = In.nextInt();
                             System.out.print("Month: ");
@@ -282,11 +340,9 @@ public class mainMethod {
                             System.out.println("Sleep hours added successfully.");
 
                         system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
-                        } else if (exerciseChoice == 5) {
-                        
-    
-                            // View Daily Log
-                            System.out.println("Enter the date to view: ");
+            }
+            void getDailyLogMenu(){
+                System.out.println("Enter the date to view: ");
                             System.out.print("Day: ");
                             int day = In.nextInt();
                             System.out.print("Month: ");
@@ -300,21 +356,9 @@ public class mainMethod {
                             } else {
                                 System.out.println("No daily log found for the specified date.");
                             }
-                        } else if (exerciseChoice == 6) {
-                            system.currentUser.viewHistory();
-                        } else if (exerciseChoice == 7) {
-                            system.logOut(system.currentUser.getName());
-                            loggedIn = false;
-                            System.out.println("Logged out successfully.");
-                        } else {
-                            System.out.println("Invalid choice. Please try again.");
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("An error occurred: "+e.getMessage());
-                In.nextLine();
+            }
+            void viewHistoryMenu(){
+                system.currentUser.viewHistory();
             }
         }
-    }
-}
+        
