@@ -129,7 +129,7 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
 }
 
 class StressMonitor extends Feature implements SleepTracker {
-    double hoursOfSleep;
+    private double hoursOfSleep;
 
     StressMonitor(double hoursOfSleep) {
         super();
@@ -141,6 +141,10 @@ class StressMonitor extends Feature implements SleepTracker {
     // tracks sleep hours
     public void trackSleepHours(double hours) {
         hoursOfSleep += hours;
+    }
+
+    public double getSleep() {
+        return this.hoursOfSleep;
     }
 
     public String toString() {

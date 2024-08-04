@@ -256,9 +256,6 @@ class DailyLog {
     public double caloriesComsume;
     private String date = this.days + "/" + this.months + "/" + this.year;
     private List<Feature> features;
-    private double caloriesBurntFromExercisesByCount;
-    private double caloriesBurntFromExercisesByDuration;
-    private double hoursOfSleep;
     private double improvementPercentage;
     private double dailyBMI = 0;
     private double generalCalBurn;
@@ -347,35 +344,40 @@ class DailyLog {
         return arr;
     }
 
-    public void viewDailyLog(CalculateExcerciseCalories c) {
+    public void viewDailyLog(CalculateExcerciseCalories calculate) {
         System.out.println("--------------------------------");
         System.out.println("Date: " + this.date);
         System.out.println("BMI: " + this.dailyBMI);
         System.out.println("Improvement Percentage: " + this.improvementPercentage + "%");
-        // System.out.println("General Calories Burnt: " + this.caloriesBurnt);
-        // System.out.println("General Calories Consumed: " + this.caloriesConsumed);
-
-        if (c == CalculateExcerciseCalories.PER_EXCERCISE) {
-            System.out.println("Calories Burnt from Exercises: " + this.caloriesBurntFromExercisesByCount);
-        } else if (c == CalculateExcerciseCalories.DURATION_OF_EXCERCISE) {
-            System.out.println("Calories Burnt from Exercises: " + this.caloriesBurntFromExercisesByDuration);
+        double totalCal = 0;
+        for (Feature feature : this.features) {
+            if (feature instanceof PhysicalMonitor) {
+                totalCal += ((PhysicalMonitor) feature).getCaloriesBurnt();
+            }
         }
+        System.out.println("Calories Burnt from Exercises: " + totalCal);
 
         System.out.println("Exercises: ");
 
         if (this.getTotalExcercises() != null && !this.getTotalExcercises().isEmpty()) {
             for (Exercise e : this.getTotalExcercises()) {
-                if (c == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    System.out.println("  • " + e.getExerciseType().name + ": \n     - Repetition: " + e.getCount());
+                if (calculate == CalculateExcerciseCalories.PER_EXCERCISE) {
+                    System.out.println("  - " + e.getExerciseType().name + ": \n     - Repetition: " + e.getCount());
                 } else {
-                    System.out.println("  • " + e.getExerciseType().name + ": \n     - Hours: " + e.getHours());
+                    System.out.println("  - " + e.getExerciseType().name + ": \n     - Hours: " + e.getHours());
                 }
             }
         } else {
             System.out.println("No exercises recorded for this day.");
         }
+        double totalSleep = 0;
+        for (Feature feature : this.features) {
+            if (feature instanceof StressMonitor) {
+                totalSleep += ((StressMonitor) feature).getSleep();
+            }
+        }
 
-        System.out.println("Sleep Hours: " + this.hoursOfSleep);
+        System.out.println("Sleep Hours: " + totalSleep);
         System.out.println("--------------------------------");
 
     }
