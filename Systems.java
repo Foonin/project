@@ -79,15 +79,4 @@ class Systems implements verifyAccount{
             }
         }
     }
-    //testing part -> REMOVE AFTER DONE
-    public static void main(String[] args) {
-        Systems s = new Systems();
-        s.addAccount("tlmthong", "s12hb321", null, 4, 1, null, null);
-        s.addAccount("tlmthong2", "s12erw21", null, 4, 1, null, null);
-        s.addAccount("tlmth23ng", "s1sdf321", null, 4, 1, null, null);
-        s.addAccount("tlmth3ng", "s2343241", null, 4, 1, null, null);
-        s.logIn(3,"s1sdf321");
-        s.logIn("tlmthong", "s12hb321");
-        s.logIn("tlmthong", "s12hb321");
-    }
 }
