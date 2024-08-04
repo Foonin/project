@@ -13,7 +13,6 @@ class MainMenu {
     }
 
     void runningMenu() {
-        system.addAccount("1", "1", "1", 100, 1.5, g, c);
         while (running) {
             System.out.println("\n--- Fitness Tracker Menu ---");
             System.out.println("1. Create Account");
@@ -222,7 +221,7 @@ class MainMenu {
             dailyLog = new DailyLog(day, month, year);
         }
         for (PhysicalMonitor pm : physical) {
-            dailyLog.setExercises(pm.getExercises());
+            dailyLog.addFeature(pm.getExercises());
         }
         // if (system.currentUser.getCaloriesCalculation() ==
         // CalculateExcerciseCalories.PER_EXCERCISE) {
@@ -316,7 +315,7 @@ class MainMenu {
             } else if (calorieChoice == 2) {
                 System.out.print("Enter calories burnt: ");
                 double calories = In.nextDouble();
-                dailyLog.burmCalories(calories);
+                dailyLog.burnCalories(calories);
                 System.out.println("Calories burnt added successfully.");
             } else {
                 System.out.println("Invalid choice.");
@@ -342,7 +341,7 @@ class MainMenu {
 
         System.out.print("Enter hours of sleep: ");
         double sleepHours = In.nextDouble();
-        dailyLog.addSleepHours(sleepHours);
+        dailyLog.addFeature(sleepHours);
         System.out.println("Sleep hours added successfully.");
 
         system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
