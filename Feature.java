@@ -25,6 +25,9 @@ enum ExerciseType { // enum to represent various exercise types
         this.identifierID = identifierID;
     }
 
+    public String toString() {
+        return "This excercise is " + this.name;
+    }
 }
 
 // interface for exercise methods
@@ -46,13 +49,8 @@ class Feature {
         this.nextID += 1;
     }
 
-    // accessor method for user
-    public int getUser() {
-        return this.id;
-    }
-
-    public int getNextId() {
-        return this.nextID;
+    public String toString() {
+        return "This feature has the id is" + this.id;
     }
 }
 
@@ -89,6 +87,10 @@ class Exercise {
     // accessor method for exercise type
     ExerciseType getExerciseType() {
         return this.exerciseType;
+    }
+
+    public String toString() {
+        return this.exerciseType.toString() + "Duration: " + this.hours + "Count: " + this.count;
     }
 }
 
@@ -146,6 +148,16 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
         this.caloriesConsumed = cal;
     }
 
+    @Override
+    public String toString() {
+        String listStringExercise = "";
+        for (Exercise exercise : this.exercises) {
+            listStringExercise += ", ";
+            listStringExercise += exercise.getExerciseType().name;
+        }
+        return "This record hold for list of excercise: " + listStringExercise;
+    }
+
 }
 
 class StressMonitor extends Feature implements SleepTracker {
@@ -161,5 +173,9 @@ class StressMonitor extends Feature implements SleepTracker {
     // tracks sleep hours
     public void trackSleepHours(double hours) {
         hoursOfSleep += hours;
+    }
+
+    public String toString() {
+        return "this sleep duration is" + this.hoursOfSleep;
     }
 }

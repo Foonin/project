@@ -212,6 +212,11 @@ public class FitnessUser extends User implements UserAuthentication {
         // Update BMI in the most recent DailyLog
         this.updateBMI(this.weight, this.height);
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ". BMI: " + this.bmi;
+    }
 }
 
 interface UserAuthentication {
@@ -229,6 +234,10 @@ abstract class User {
         this.username = username;
         this.password = password;
         this.email = email;
+    }
+
+    public String toString() {
+        return "User name: " + this.username + ". Email:" + this.email;
     }
 }
 
@@ -322,6 +331,8 @@ class DailyLog {
                 break;
             }
         }
+        StressMonitor stress = new StressMonitor(hours);
+        this.features.add(stress);
     }
 
     public void addCalories(double cal) {
@@ -411,6 +422,12 @@ class DailyLog {
 
         System.out.println("Sleep Hours: " + this.hoursOfSleep);
         System.out.println("--------------------------------");
+
+    }
+
+    public String toString() {
+        return "Date: " + this.date + ". BMI: " + this.dailyBMI + ". Improvement Percentage:"
+                + this.improvementPercentage + "%";
     }
 }
 
@@ -509,5 +526,9 @@ class FitnessHistory {
             System.out.println("--------------------------------");
             index++;
         }
+    }
+
+    public String toString() {
+        return "Currently holding " + this.history.size() + " Daily Logs.";
     }
 }
