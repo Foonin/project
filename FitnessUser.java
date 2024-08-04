@@ -249,12 +249,13 @@ class DailyLog {
     private int days;
     private int months;
     private int year;
-    static final Comparator<DailyLog> comparatorForDates = Comparator.comparing(DailyLog::getYear)
-            .thenComparing(DailyLog::getMonths).thenComparing(DailyLog::getDays);
+    static final Comparator<DailyLog> comparatorForDates = Comparator
+            .comparing(DailyLog::getYear)
+            .thenComparing(DailyLog::getMonths)
+            .thenComparing(DailyLog::getDays);
     public double caloriesComsume;
     private String date = this.days + "/" + this.months + "/" + this.year;
     private List<Feature> features;
-    // private List<Exercise> exercises;
     private double caloriesBurntFromExercisesByCount;
     private double caloriesBurntFromExercisesByDuration;
     private double hoursOfSleep;
@@ -262,24 +263,12 @@ class DailyLog {
     private double dailyBMI = 0;
     private double generalCalBurn;
 
-    public void setExercises(Exercise exercises) {
-        PhysicalMonitor pm = new PhysicalMonitor();
-        pm.addExercise(exercises);
-        this.features.add(pm);
-    }
-
-    // initialises each attribute using polymorphism
     DailyLog(int days, int months, int year) {
-        // usual initialisation of attributes
         this.days = days;
         this.months = months;
         this.year = year;
         this.date = this.days + "/" + this.months + "/" + this.year;
-        this.features = new ArrayList<>();
-        // call the populateFeatures method to add all features into the arraylist
-        // polymorphic initialisation of attributes
-        // iterating through feature objects
-        this.features = new ArrayList<Feature>();
+        this.features = new ArrayList<Feature>();// use polymorphism here
         this.caloriesComsume = 2000;
         this.generalCalBurn = 0;
     }
@@ -290,6 +279,10 @@ class DailyLog {
 
     public double getGeneralCal() {
         return this.generalCalBurn;
+    }
+
+    public void burnCalories(double cal) {
+        this.generalCalBurn += cal;
     }
 
     public void setImprovementPercentage(double improve) {
@@ -304,37 +297,19 @@ class DailyLog {
         this.dailyBMI = bmi;
     }
 
-    public void addExercise(Exercise e) {
-        // check pm exist
-        for (Feature f : this.features) {
-            if (f instanceof PhysicalMonitor) {
-                ((PhysicalMonitor) f).addExercise(e);
-                return;
-            }
-        }
+    public void addFeature(Exercise exercises) {
         PhysicalMonitor pm = new PhysicalMonitor();
-        pm.addExercise(e);
+        pm.addExercise(exercises);
         this.features.add(pm);
     }
 
-    public void addSleepHours(double hours) {
-        this.hoursOfSleep += hours;
-        for (Feature f : this.features) {
-            if (f instanceof StressMonitor) {
-                ((StressMonitor) f).trackSleepHours(hours);
-                break;
-            }
-        }
+    public void addFeature(double hours) {
         StressMonitor stress = new StressMonitor(hours);
         this.features.add(stress);
     }
 
     public void addCalories(double cal) {
         this.caloriesComsume += cal;
-    }
-
-    public void burmCalories(double cal) {
-        this.generalCalBurn += cal;
     }
 
     // accessor method
@@ -357,41 +332,16 @@ class DailyLog {
         return this.year;
     }
 
-    // accessor method
-    // List<Exercise> getExericses() {
-    // return this.exercises;
-    // }
-
     List<Feature> getFeatures() {
         return this.features;
     }
 
-    // accessor method
-    void setCaloriesBurntFromExercisesByCount(double cal) {
-        this.caloriesBurntFromExercisesByCount = cal;
-    }
-
-    void setCaloriesBurntFromExercisesByDuration(double cal) {
-        this.caloriesBurntFromExercisesByDuration = cal;
-    }
-
-    double getCaloriesBurntFromExercisesByCount() {
-        return this.caloriesBurntFromExercisesByCount;
-    }
-
-    // accessor method
-    double getCaloriesBurntFromExercisesByDuration() {
-        return this.caloriesBurntFromExercisesByDuration;
-    }
-
-    // creates a sub-collection of history arraylist
-
     // this method allows the user to view a specific day from the history array
     public ArrayList<Exercise> getTotalExcercises() {
         ArrayList<Exercise> arr = new ArrayList<>();
-        for (Feature f : this.features) {
-            if (f instanceof PhysicalMonitor) {
-                arr.add(((PhysicalMonitor) f).getExercises());
+        for (Feature feature : this.features) {
+            if (feature instanceof PhysicalMonitor) {
+                arr.add(((PhysicalMonitor) feature).getExercises());
             }
         }
         return arr;
@@ -458,22 +408,6 @@ class FitnessHistory {
     }
 
     // method to add dailylogs to history
-    void addDailyLog(DailyLog dailyLog) {
-        boolean exists = false;
-        // iteratiing through daily log objects
-        for (DailyLog d : this.history) {
-            // checks if date equals to the date of the parameter
-            if (d.getDate().equals(dailyLog.getDate())) {
-                System.out.println("Daily-Log already admitted");
-                exists = true;
-                break;
-            }
-        }
-        // checks if the object doesn't exist
-        if (!exists) {
-            this.history.add(dailyLog); // adds that parameter dailylog object
-        }
-    }
 
     void addOrUpdateDailyLog(DailyLog dailyLog) {
         for (int i = 0; i < this.history.size(); i++) {
@@ -501,8 +435,6 @@ class FitnessHistory {
             System.out.println("No fitness history available.");
             return;
         }
-
-        // comparator declared to compare dates between dates
 
         // sorts the history list using the comparator declared above
         Collections.sort(this.history, DailyLog.comparatorForDates);
