@@ -1,5 +1,3 @@
-import java.util.*;
-
 enum ExerciseType { // enum to represent various exercise types
 
     PUSH_UPS("Push-ups", 8, 20, 0000), // push-ups
@@ -95,26 +93,20 @@ class Exercise {
 }
 
 class PhysicalMonitor extends Feature implements ExerciseTracker {
-    private List<Exercise> exercises; // holds all exercises done
+    private Exercise exercises; // holds all exercises done
     private double caloriesBurnt; // total calories burnt
-    private double caloriesConsumed; // total calries consumed
 
     // initialises attributes
     PhysicalMonitor() {
-        this.exercises = new ArrayList<>();
+        this.exercises = new Exercise(0, 0, null);
         this.caloriesBurnt = 0;
-        this.caloriesConsumed = 0;
     }
 
     public double getCaloriesBurnt() {
         return this.caloriesBurnt;
     }
 
-    public double getCaloriesConsumed() {
-        return this.caloriesConsumed;
-    }
-
-    public List<Exercise> getExercises() {
+    public Exercise getExercises() {
         return this.exercises;
     }
 
@@ -122,21 +114,7 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
     @Override
     // method to add exercises to the exercises done list
     public void addExercise(Exercise exercise) {
-        boolean exists = false;
-        // iterates through exercise objects
-        for (Exercise e : this.exercises) {
-            // checks if each exercise object's identifierID is equal to the exercise
-            // parameter's identifierID
-            if (e.getExerciseType().identifierID == exercise.getExerciseType().identifierID) {
-                System.out.println("You already performed this exercise");
-                exists = true;
-                break;
-            }
-        }
-        // checks if the exercise dosen't exist
-        if (!exists) {
-            exercises.add(exercise); // adds exercise
-        }
+        this.exercises = exercise;
     }
 
     // tracks calories burnt from exercises by each repetition
@@ -144,18 +122,8 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
         this.caloriesBurnt = cal;
     }
 
-    public void setCaloriesConsumed(double cal) {
-        this.caloriesConsumed = cal;
-    }
-
-    @Override
     public String toString() {
-        String listStringExercise = "";
-        for (Exercise exercise : this.exercises) {
-            listStringExercise += ", ";
-            listStringExercise += exercise.getExerciseType().name;
-        }
-        return "This record hold for list of excercise: " + listStringExercise;
+        return "this record is hold for " + this.exercises + " burnt " + this.caloriesBurnt;
     }
 
 }

@@ -10,7 +10,6 @@ public class FitnessUser extends User implements UserAuthentication {
     private FitnessHistory history = new FitnessHistory();
     private double calorieBalance = 0;
     private double bmi;
-    ArrayList<Double> bmiHistory = new ArrayList<>();
 
     FitnessUser(String username, String password, String email, double weight, double height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation) {
@@ -21,7 +20,6 @@ public class FitnessUser extends User implements UserAuthentication {
         this.goal = goal;
         this.password = password;
         this.bmi = this.getWeight() / (this.getHeight() * this.getHeight());
-        this.bmiHistory.add(bmi);
         this.encryptionMap.put('a', 'm');
         this.encryptionMap.put('b', 'n');
         this.encryptionMap.put('c', 'o');
@@ -87,10 +85,11 @@ public class FitnessUser extends User implements UserAuthentication {
         return this.goal;
     }
 
-    public void updateBMI(double weight, double height) {
+    public void updateBMI(double weight, double height, DailyLog d) {
 
         this.bmi = weight / (height * height);
-        this.bmiHistory.add(bmi);
+
+        d.setDailyBMI(this.bmi);
     }
 
     public String encrypt(String password) {
@@ -148,42 +147,33 @@ public class FitnessUser extends User implements UserAuthentication {
     }
 
     public void calculateCalories(DailyLog d) {
-        d.setCaloriesBurntFromExercisesByCount(0);
-        d.setCaloriesBurntFromExercisesByDuration(0);
-        if (d.getExericses() != null) {
-            for (Exercise e : d.getExericses()) {
+        double calBurn = 0;
+        if (d.getTotalExcercises() != null) {
+            for (Exercise e : d.getTotalExcercises()) {
                 if (getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    double calPerExercise = d.getCaloriesBurntFromExercisesByCount();
-                    d.setCaloriesBurntFromExercisesByCount(
-                            calPerExercise += (e.getExerciseType().METvalue * this.getWeight())
-                                    / (60 * e.getExerciseType().amountOfExercisePerMinute) * e.getCount());
-                    System.out.println(d.getCaloriesBurntFromExercisesByCount());
+                    calBurn += (e.getExerciseType().METvalue * this.getWeight())
+                            / (60 * e.getExerciseType().amountOfExercisePerMinute) * e.getCount();
                 } else {
-                    double calPerDuration = d.getCaloriesBurntFromExercisesByCount();
-                    d.setCaloriesBurntFromExercisesByCount(
-                            calPerDuration += e.getExerciseType().METvalue * this.getWeight()
-                                    * e.getHours());
-                    System.out.println(d.getCaloriesBurntFromExercisesByDuration());
+                    calBurn += e.getExerciseType().METvalue * this.getWeight()
+                            * e.getHours();
                 }
             }
         }
         for (PhysicalMonitor f : getPhysicalList(d)) {
-            ((PhysicalMonitor) f).setCaloriesBurnt(d.getCaloriesBurntFromExercisesByCount()
-                    + d.getCaloriesBurntFromExercisesByDuration());
-            ((PhysicalMonitor) f).setCaloriesConsumed(2000);
+            ((PhysicalMonitor) f).setCaloriesBurnt(calBurn);
         }
     }
 
     void calculateImprovement(DailyLog d, Goal g) {
-        adjustWeight(this.history.getCurrentIndex());
-        this.history.setCurrentIndex(this.history.getCurrentIndex() + 1);
+        adjustWeight(d);
         d.setDailyBMI(this.bmi);
-        int size = this.history.getHistory().size() - 1;
-        if (size > 0) {
-            int previous = this.history.getHistory().indexOf(d) - 1;
-            double currentBMI = bmiHistory.get(previous + 1);
-            double previousBMI = bmiHistory.get(previous);
-            double improvement = ((previousBMI - currentBMI) * 100 / previousBMI);
+        int position = this.history.getHistory().indexOf(d);
+        int previousPos = position - 1;
+
+        if (position > 0) {
+            double currentBMI = this.history.getHistory().get(position).getBMI();
+            double previousBMI = this.history.getHistory().get(previousPos).getBMI();
+            double improvement = ((currentBMI - previousBMI) * 100 / previousBMI);
 
             if (g.equals(Goal.LOSE_WEIGHT)) {
                 d.setImprovementPercentage(-improvement);// negative improvement is good for weight loss
@@ -198,19 +188,22 @@ public class FitnessUser extends User implements UserAuthentication {
         }
     }
 
-    public void setCalories(int targetInt) {
-        PhysicalMonitor target = ((PhysicalMonitor) this.history.getHistory().get(targetInt).getFeatures().get(0));
-        this.calorieBalance = target.getCaloriesConsumed() - target.getCaloriesConsumed();
+    public void setCalories(DailyLog d) {
+        double cal = 0;
+        for (PhysicalMonitor pm : getPhysicalList(d)) {
+            cal += (d.caloriesComsume - pm.getCaloriesBurnt() - d.getGeneralCal());
+        }
+        this.calorieBalance = cal;
     }
 
-    public void adjustWeight(int target) {
-        setCalories(target);
+    public void adjustWeight(DailyLog daily) {
+        setCalories(daily);
         double weightChangeKg = (calorieBalance / 3500) * 0.45;
         this.weight += weightChangeKg;
-        this.calorieBalance %= 3500; // Keep the remainder for future calculations
+        // this.calorieBalance %= 3500; // Keep the remainder for future calculations
 
         // Update BMI in the most recent DailyLog
-        this.updateBMI(this.weight, this.height);
+        this.updateBMI(this.weight, this.height, daily);
     }
 
     @Override
@@ -256,18 +249,23 @@ class DailyLog {
     private int days;
     private int months;
     private int year;
-
+    static final Comparator<DailyLog> comparatorForDates = Comparator.comparing(DailyLog::getYear)
+            .thenComparing(DailyLog::getMonths).thenComparing(DailyLog::getDays);
+    public double caloriesComsume;
     private String date = this.days + "/" + this.months + "/" + this.year;
     private List<Feature> features;
-    private List<Exercise> exercises;
+    // private List<Exercise> exercises;
     private double caloriesBurntFromExercisesByCount;
     private double caloriesBurntFromExercisesByDuration;
     private double hoursOfSleep;
     private double improvementPercentage;
     private double dailyBMI = 0;
+    private double generalCalBurn;
 
-    public void setExercises(List<Exercise> exercises) {
-        this.exercises = new ArrayList<>(exercises); // Create a new list to avoid reference issues
+    public void setExercises(Exercise exercises) {
+        PhysicalMonitor pm = new PhysicalMonitor();
+        pm.addExercise(exercises);
+        this.features.add(pm);
     }
 
     // initialises each attribute using polymorphism
@@ -281,21 +279,17 @@ class DailyLog {
         // call the populateFeatures method to add all features into the arraylist
         // polymorphic initialisation of attributes
         // iterating through feature objects
-        for (Feature f : this.features) {
-            // conditional statement to check if "f" is of type "PhysicalMonitor"
-            if (f instanceof PhysicalMonitor) {
-                PhysicalMonitor p = (PhysicalMonitor) f; // casting f onto "PhysicalMonitor" to convert it
-                // initialising each attribute
-                this.exercises = p.getExercises();
-                this.caloriesBurntFromExercisesByCount = 0;// p.trackExerciseCaloriesBurntByCount();
-                this.caloriesBurntFromExercisesByDuration = 0;// p.trackExerciseCaloriesBurntByDuration();
-                // checking if "f" is of type "StressMonitor"
-            } else if (f instanceof StressMonitor) {
-                StressMonitor s = (StressMonitor) f; // casting "f" onto "StressMonitor" to convert it
-                // initialising each attribute
-                this.hoursOfSleep = s.hoursOfSleep;
-            }
-        }
+        this.features = new ArrayList<Feature>();
+        this.caloriesComsume = 2000;
+        this.generalCalBurn = 0;
+    }
+
+    public double getBMI() {
+        return this.dailyBMI;
+    }
+
+    public double getGeneralCal() {
+        return this.generalCalBurn;
     }
 
     public void setImprovementPercentage(double improve) {
@@ -336,11 +330,11 @@ class DailyLog {
     }
 
     public void addCalories(double cal) {
-        this.caloriesBurntFromExercisesByCount += cal;
+        this.caloriesComsume += cal;
     }
 
     public void burmCalories(double cal) {
-        this.caloriesBurntFromExercisesByCount -= cal;
+        this.generalCalBurn += cal;
     }
 
     // accessor method
@@ -364,9 +358,9 @@ class DailyLog {
     }
 
     // accessor method
-    List<Exercise> getExericses() {
-        return this.exercises;
-    }
+    // List<Exercise> getExericses() {
+    // return this.exercises;
+    // }
 
     List<Feature> getFeatures() {
         return this.features;
@@ -393,6 +387,16 @@ class DailyLog {
     // creates a sub-collection of history arraylist
 
     // this method allows the user to view a specific day from the history array
+    public ArrayList<Exercise> getTotalExcercises() {
+        ArrayList<Exercise> arr = new ArrayList<>();
+        for (Feature f : this.features) {
+            if (f instanceof PhysicalMonitor) {
+                arr.add(((PhysicalMonitor) f).getExercises());
+            }
+        }
+        return arr;
+    }
+
     public void viewDailyLog(CalculateExcerciseCalories c) {
         System.out.println("--------------------------------");
         System.out.println("Date: " + this.date);
@@ -408,12 +412,13 @@ class DailyLog {
         }
 
         System.out.println("Exercises: ");
-        if (this.exercises != null && !this.exercises.isEmpty()) {
-            for (Exercise e : this.exercises) {
+
+        if (this.getTotalExcercises() != null && !this.getTotalExcercises().isEmpty()) {
+            for (Exercise e : this.getTotalExcercises()) {
                 if (c == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    System.out.println("  • " + e.getExerciseType().name + ": \n     • Repetition: " + e.getCount());
+                    System.out.println("  • " + e.getExerciseType().name + ": \n     - Repetition: " + e.getCount());
                 } else {
-                    System.out.println("  • " + e.getExerciseType().name + ": \n     • Hours: " + e.getHours());
+                    System.out.println("  • " + e.getExerciseType().name + ": \n     - Hours: " + e.getHours());
                 }
             }
         } else {
@@ -498,11 +503,9 @@ class FitnessHistory {
         }
 
         // comparator declared to compare dates between dates
-        final Comparator<DailyLog> comparatorForDates = Comparator.comparing(DailyLog::getYear)
-                .thenComparing(DailyLog::getMonths).thenComparing(DailyLog::getDays);
 
         // sorts the history list using the comparator declared above
-        Collections.sort(this.history, comparatorForDates);
+        Collections.sort(this.history, DailyLog.comparatorForDates);
 
         int index = 1;
         // iterating through dailylog objects
@@ -511,8 +514,8 @@ class FitnessHistory {
             System.out.println("--------------------------------");
             System.out.println("Date: " + d.getDate());
             System.out.println("Improvement Percentage: " + d.getImprovementPercentage() + "%");
-            if (d.getExericses() != null && !d.getExericses().isEmpty()) {
-                for (Exercise e : d.getExericses()) {
+            if (d.getTotalExcercises() != null && !d.getTotalExcercises().isEmpty()) {
+                for (Exercise e : d.getTotalExcercises()) {
                     if (c == CalculateExcerciseCalories.PER_EXCERCISE) {
                         System.out
                                 .println("  • " + e.getExerciseType().name + ": \n     • Repetition: " + e.getCount());

@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 class MainMenu {
@@ -180,9 +181,10 @@ class MainMenu {
         int month = In.nextInt();
         System.out.print("Year: ");
         int year = In.nextInt();
-        PhysicalMonitor physicalMonitor = new PhysicalMonitor();
+        ArrayList<PhysicalMonitor> physical = new ArrayList<>();
         boolean addingExercises = true;
         while (addingExercises) {
+            PhysicalMonitor physicalMonitor = new PhysicalMonitor();
             System.out.println("Choose an exercise:");
             ExerciseType[] exerciseTypes = ExerciseType.values();
             for (int i = 0; i < exerciseTypes.length; i++) {
@@ -206,6 +208,7 @@ class MainMenu {
                 }
 
                 System.out.println("Exercise added successfully.");
+                physical.add(physicalMonitor);
             } else {
                 System.out.println("Invalid exercise choice.");
             }
@@ -218,18 +221,18 @@ class MainMenu {
         if (dailyLog == null) {
             dailyLog = new DailyLog(day, month, year);
         }
-        dailyLog.setExercises(physicalMonitor.getExercises());
-        for (Exercise e : physicalMonitor.getExercises()) {
-            dailyLog.addExercise(e);
+        for (PhysicalMonitor pm : physical) {
+            dailyLog.setExercises(pm.getExercises());
         }
-        system.currentUser.calculateCalories(dailyLog);
-        if (system.currentUser.getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
-            system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByCount());
-        } else {
-            system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByDuration());
-        }
+        // if (system.currentUser.getCaloriesCalculation() ==
+        // CalculateExcerciseCalories.PER_EXCERCISE) {
+        // system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByCount());
+        // } else {
+        // system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByDuration());
+        // }
         system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
         System.out.println("Exercises added to the daily log.");
+        system.currentUser.calculateCalories(dailyLog);
         system.currentUser.calculateImprovement(dailyLog, system.currentUser.getGoal());
     }
 
@@ -244,7 +247,7 @@ class MainMenu {
 
         DailyLog dailyLog = system.currentUser.getFitnessHistory().getDailyLog(day, month, year);
         if (dailyLog != null) {
-            List<Exercise> exercises = dailyLog.getExericses();
+            List<Exercise> exercises = dailyLog.getTotalExcercises();
             if (exercises != null && !exercises.isEmpty()) {
                 System.out.println("Choose an exercise to modify:");
                 for (int i = 0; i < exercises.size(); i++) {
@@ -271,14 +274,15 @@ class MainMenu {
             } else {
                 System.out.println("No exercises found for this date.");
             }
-            if (system.currentUser.getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
-                system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByCount());
-            } else {
-                system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByDuration());
-            }
-            system.currentUser.updateBMI(system.currentUser.getWeight(), system.currentUser.getHeight());
-            system.currentUser.calculateImprovement(dailyLog, system.currentUser.getGoal());
+            // if (system.currentUser.getCaloriesCalculation() ==
+            // CalculateExcerciseCalories.PER_EXCERCISE) {
+            // system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByCount());
+            // } else {
+            // system.currentUser.burnCalories(dailyLog.getCaloriesBurntFromExercisesByDuration());
+            // }
             system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
+            system.currentUser.calculateImprovement(dailyLog, system.currentUser.getGoal());
+
         } else {
             System.out.println("No daily log found for the specified date.");
         }
@@ -318,6 +322,7 @@ class MainMenu {
                 System.out.println("Invalid choice.");
             }
             system.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
+            system.currentUser.calculateCalories(dailyLog);
         }
     }
 
